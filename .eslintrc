@@ -1,4 +1,13 @@
 {
-  "extends": "eslint-config-egg",
-  "root": true
+  "root": true,
+  "extends": [
+    "eslint-config-egg",
+    "prettier"
+  ],
+  "plugins": [
+    "prettier"
+  ],
+  "rules": {
+    "prettier/prettier": "warn"
+  }
 }
