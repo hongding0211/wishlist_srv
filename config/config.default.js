@@ -16,11 +16,21 @@ module.exports = (appInfo) => {
   config.keys = appInfo.name + '_1676389048099_6333'
 
   // add your middleware config here
-  config.middleware = []
+  config.middleware = ['auth']
 
   // add your user config here
   const userConfig = {
-    // myAppName: 'egg',
+    myAppName: 'wishlist',
+  }
+
+  // auth middleware config
+  const ssoBaseUrl = 'https://hong97.ltd/sso'
+
+  config.auth = {
+    getUserInfo: {
+      path: `${ssoBaseUrl}/api/userInfo`,
+      method: 'GET',
+    },
   }
 
   return {
