@@ -16,10 +16,9 @@ module.exports = (options) => {
       ctx.throw(403, 'Invalid token.')
     }
     const tokenBody = JSON.parse(atob(jwtBodyMatcher[1]))
+    const tokenExpiredTime = tokenBody.exp * 1000
     const expired =
-      tokenBody?.exp != null
-        ? Math.ceil(Date.now() / 1000) > tokenBody.exp
-        : true
+      tokenBody?.exp != null ? Date.now() > tokenExpiredTime : true
 
     if (tokenSet.has(authToken) && expired) {
       ctx.throw(403, 'Expired token.')
@@ -40,6 +39,12 @@ module.exports = (options) => {
       }
 
       tokenSet.add(authToken)
+    }
+
+    // 将 authToken 挂载到 ctx 上
+    ctx.authToken = {
+      token: authToken,
+      expired: tokenExpiredTime,
     }
 
     await next()
