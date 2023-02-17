@@ -16,7 +16,7 @@ module.exports = (appInfo) => {
   config.keys = appInfo.name + '_1676389048099_6333'
 
   // add your middleware config here
-  config.middleware = ['auth']
+  config.middleware = ['auth', 'traffic']
 
   // add your user config here
   const userConfig = {
@@ -31,6 +31,11 @@ module.exports = (appInfo) => {
       path: `${ssoBaseUrl}/api/userInfo`,
       method: 'GET',
     },
+  }
+
+  config.traffic = {
+    windowSize: 60 * 1000,
+    maxRequest: 100,
   }
 
   return {
