@@ -16,6 +16,8 @@ module.exports = () => {
     },
   }
 
+  config.middleware = ['auth']
+
   return {
     ...config,
   }
