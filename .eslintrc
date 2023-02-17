@@ -9,5 +9,8 @@
   ],
   "rules": {
     "prettier/prettier": "warn"
+  },
+  "parserOptions": {
+    "ecmaVersion": 13
   }
 }
