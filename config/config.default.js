@@ -16,23 +16,33 @@ module.exports = (appInfo) => {
   config.keys = appInfo.name + '_1676389048099_6333'
 
   // add your middleware config here
-  config.middleware = ['auth', 'traffic']
+  config.middleware = ['traffic']
 
   // add your user config here
   const userConfig = {
     myAppName: 'wishlist',
   }
 
-  // auth middleware config
-  const ssoBaseUrl = 'https://hong97.ltd/sso'
+  const loginType = ['sso', 'wx']
 
-  config.auth = {
-    getUserInfo: {
-      path: `${ssoBaseUrl}/api/userInfo`,
-      method: 'GET',
+  const ssoBaseUrl = 'https://hong97.ltd/sso'
+  const sso = {
+    baseUrl: ssoBaseUrl,
+    api: {
+      getUserInfo: {
+        path: `${ssoBaseUrl}/api/userInfo`,
+        method: 'GET',
+      },
+      validate: {
+        path: `${ssoBaseUrl}/api/validate`,
+        method: 'POST',
+      },
     },
   }
 
+  /** **********************
+   ***** Middleware *******
+   ************************/
   config.traffic = {
     windowSize: 60 * 1000,
     maxRequest: 100,
@@ -41,5 +51,7 @@ module.exports = (appInfo) => {
   return {
     ...config,
     ...userConfig,
+    sso,
+    loginType,
   }
 }

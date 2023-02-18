@@ -1,8 +1,4 @@
-// 用一个 set 来维护 token 缓存
-// 如果 token 命中并且在有效期内，不再次查询
-const tokenSet = new Set()
-
-module.exports = (options) => {
+module.exports = () => {
   return async function auth(ctx, next) {
     const authToken =
       ctx.cookies.get('authToken') || ctx.request.query?.authToken
@@ -15,30 +11,15 @@ module.exports = (options) => {
     if (!jwtBodyMatcher?.length || jwtBodyMatcher.length < 2) {
       ctx.throw(403, 'Invalid token.')
     }
+
     const tokenBody = JSON.parse(atob(jwtBodyMatcher[1]))
+
     const tokenExpiredTime = tokenBody.exp * 1000
     const expired =
       tokenBody?.exp != null ? Date.now() > tokenExpiredTime : true
 
-    if (tokenSet.has(authToken) && expired) {
+    if (expired) {
       ctx.throw(403, 'Expired token.')
-    }
-
-    if (!tokenSet.has(authToken)) {
-      const res = await ctx.curl(
-        `${options.getUserInfo.path}?authToken=${authToken}`,
-        {
-          method: options.getUserInfo.method,
-          dataType: 'json',
-        }
-      )
-
-      const { status } = res
-      if (status < 200 || status >= 300) {
-        ctx.throw(403, 'Invalid token.')
-      }
-
-      tokenSet.add(authToken)
     }
 
     // 将 authToken 挂载到 ctx 上
