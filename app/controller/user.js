@@ -1,4 +1,5 @@
 const BaseController = require('./base')
+const { wrap } = require('../utlis/token')
 
 class UserController extends BaseController {
   async login() {
@@ -13,7 +14,7 @@ class UserController extends BaseController {
     const { type, ticket } = this.ctx.query
 
     try {
-      let token
+      let token = 'haha'
 
       switch (type) {
         case 'sso':
@@ -25,16 +26,26 @@ class UserController extends BaseController {
           break
       }
 
-      // TODO 封装一层自己的 TOKEN 结构
-      // 写入库中，和唯一的一个 uid 映射
+      const wrappedToken = wrap({
+        token,
+        type,
+      })
 
       this.success({
-        type,
-        token,
+        token: wrappedToken,
       })
     } catch {
       this.error('Invalid ticket')
     }
+  }
+
+  async info() {
+    this.ctx.validate(
+      {
+        token: { type: 'string' },
+      },
+      this.ctx.query
+    )
   }
 }
 

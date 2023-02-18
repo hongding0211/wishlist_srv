@@ -40,6 +40,9 @@ module.exports = (appInfo) => {
     },
   }
 
+  const tokenKey =
+    'U2FsdGVkX19Eplk5nQHwc5FlOvcCZjIWkPdLMx3DYI59RYEI72qTu8Y2lvmdCj1r2m7Z1VxF+i+Bfd9KLIIVdA=='
+
   /** **********************
    ***** Middleware *******
    ************************/
@@ -53,5 +56,6 @@ module.exports = (appInfo) => {
     ...userConfig,
     sso,
     loginType,
+    tokenKey,
   }
 }

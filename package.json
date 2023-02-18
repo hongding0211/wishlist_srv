@@ -7,9 +7,11 @@
     "declarations": true
   },
   "dependencies": {
+    "crypto-js": "^4.1.1",
     "egg": "^3",
     "egg-scripts": "^2",
-    "egg-validate": "^2.0.2"
+    "egg-validate": "^2.0.2",
+    "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
     "egg-bin": "^5",
