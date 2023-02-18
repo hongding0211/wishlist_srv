@@ -4,7 +4,7 @@ const CryptoJS = require('crypto-js')
 const { tokenKey } = require('../../config/config.default')
 
 /**
- * @param {{token: string, type: string}} data data
+ * @param {any} data data
  * @return {string} token token
  */
 const wrap = (data) => {
@@ -16,7 +16,7 @@ const wrap = (data) => {
   }
 
   return jwt.sign(encryptedData, k, {
-    expiresIn: '30d',
+    expiresIn: '180d',
   })
 }
 
@@ -28,8 +28,13 @@ const unwrap = (token) => {
   const { iat } = jwt.decode(token)
   const k = `${Math.floor(iat / (2 * 60))}_${tokenKey}`
   const { data } = jwt.verify(token, k)
+  if (!data) {
+    return null
+  }
   const decryptedData = CryptoJS.AES.decrypt(data, k)
-  return JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8))
+  return {
+    ...JSON.parse(decryptedData.toString(CryptoJS.enc.Utf8)),
+  }
 }
 
 module.exports = {

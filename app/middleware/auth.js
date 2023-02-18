@@ -1,31 +1,24 @@
+const { unwrap } = require('../utlis/token')
+
 module.exports = () => {
   return async function auth(ctx, next) {
-    const authToken =
-      ctx.cookies.get('authToken') || ctx.request.query?.authToken
+    const token = ctx.cookies.get('token') || ctx.request.query?.token
 
-    if (authToken == null) {
-      ctx.throw(401, 'Auth token is required.')
+    if (token == null) {
+      ctx.throw(401, 'Token is required.')
     }
 
-    const jwtBodyMatcher = authToken.match(/^[\w-]+\.([\w-]+)\.[\w-]+$/)
-    if (!jwtBodyMatcher?.length || jwtBodyMatcher.length < 2) {
+    try {
+      const unwrappedToken = unwrap(token)
+
+      if (!unwrappedToken) {
+        ctx.throw(403, 'Invalid token.')
+      }
+
+      // 将 token 挂载到 ctx 上
+      ctx.token = unwrappedToken
+    } catch {
       ctx.throw(403, 'Invalid token.')
-    }
-
-    const tokenBody = JSON.parse(atob(jwtBodyMatcher[1]))
-
-    const tokenExpiredTime = tokenBody.exp * 1000
-    const expired =
-      tokenBody?.exp != null ? Date.now() > tokenExpiredTime : true
-
-    if (expired) {
-      ctx.throw(403, 'Expired token.')
-    }
-
-    // 将 authToken 挂载到 ctx 上
-    ctx.authToken = {
-      token: authToken,
-      expired: tokenExpiredTime,
     }
 
     await next()

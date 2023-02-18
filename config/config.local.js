@@ -18,7 +18,15 @@ module.exports = () => {
 
   config.middleware = []
 
+  const mongoose = {
+    client: {
+      url: 'mongodb://127.0.0.1/wishlist',
+      options: {},
+    },
+  }
+
   return {
     ...config,
+    mongoose,
   }
 }
