@@ -23,23 +23,44 @@ module.exports = (appInfo) => {
     myAppName: 'wishlist',
   }
 
-  // auth middleware config
-  const ssoBaseUrl = 'https://hong97.ltd/sso'
+  const loginType = ['sso', 'wx']
 
-  config.auth = {
-    getUserInfo: {
-      path: `${ssoBaseUrl}/api/userInfo`,
-      method: 'GET',
+  const ssoBaseUrl = 'https://hong97.ltd/sso'
+  const sso = {
+    baseUrl: ssoBaseUrl,
+    api: {
+      getUserInfo: {
+        path: `${ssoBaseUrl}/api/userInfo`,
+        method: 'GET',
+      },
+      validate: {
+        path: `${ssoBaseUrl}/api/validate`,
+        method: 'POST',
+      },
     },
+  }
+
+  const tokenKey =
+    'U2FsdGVkX19Eplk5nQHwc5FlOvcCZjIWkPdLMx3DYI59RYEI72qTu8Y2lvmdCj1r2m7Z1VxF+i+Bfd9KLIIVdA=='
+
+  /** **********************
+   ***** Middleware *******
+   ************************/
+  config.auth = {
+    ignore: '/user/login',
   }
 
   config.traffic = {
     windowSize: 60 * 1000,
     maxRequest: 100,
+    ignore: '/user/login',
   }
 
   return {
     ...config,
     ...userConfig,
+    sso,
+    loginType,
+    tokenKey,
   }
 }

@@ -2,21 +2,19 @@ const trafficMap = new Map()
 
 module.exports = (options) => {
   return async function traffic(ctx, next) {
-    const { authToken } = ctx
-    if (authToken == null) {
+    const { uuid } = ctx.token
+    if (uuid == null) {
       ctx.throw(401, 'Auth token is required.')
     }
 
-    const { token, expired } = authToken
-
-    if (!trafficMap.has(token)) {
-      trafficMap.set(token, {
+    if (!trafficMap.has(uuid)) {
+      trafficMap.set(uuid, {
         cnt: 0,
-        expireAt: expired,
+        expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
       })
     }
 
-    const t = trafficMap.get(token)
+    const t = trafficMap.get(uuid)
 
     t.cnt += t.cnt <= options.maxRequest ? 1 : 0
 
@@ -26,14 +24,14 @@ module.exports = (options) => {
     } else {
       setTimeout(() => {
         // token 在被销毁时，队列上也可能还有定时任务
-        const t = trafficMap.get(token)
+        const t = trafficMap.get(uuid)
         if (t == null) {
           return
         }
 
         t.cnt = t.cnt < 1 ? 0 : t.cnt - 1
         if (Date.now() > t.expireAt) {
-          trafficMap.delete(token)
+          trafficMap.delete(uuid)
         }
       }, options.windowSize)
     }
