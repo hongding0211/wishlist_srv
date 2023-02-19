@@ -10,4 +10,9 @@ module.exports = ({ router, middleware, controller }) => {
   router.get('/wish/of', middleware.pagination(), controller.wish.wishesOf)
   router.get('/wish/myClaimedCount', controller.wish.myClaimedCount)
   router.get('/wish/plaza', middleware.pagination(), controller.wish.plaza)
+  router.get(
+    '/wish/myClaims',
+    middleware.pagination(),
+    controller.wish.myClaims
+  )
 }

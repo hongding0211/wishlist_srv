@@ -60,11 +60,11 @@ class WishController extends BaseController {
   }
 
   async myClaimedCount() {
-    this.success(await this.service.wish.myClaimedCount())
+    this.success(await this.ctx.service.wish.myClaimedCount())
   }
 
   async myClaims() {
-    // TODO
+    this.success(await this.ctx.service.wish.myClaims())
   }
 
   async claim() {
@@ -131,12 +131,8 @@ class WishController extends BaseController {
       const found = await this.ctx.service.wish.wishesOf(uuid)
       this.success(
         found.map((w) => ({
-          wishId: w._id,
-          createdAt: w.created_at,
-          modifiedAt: w.modified_at,
-          meta: w.meta,
-          claimedAt: w.claimed_at,
-          claimedBy: w.claimed_by,
+          ...w,
+          isClaimed: Object.keys(w.claimedBy).length > 0,
         }))
       )
     } catch (e) {

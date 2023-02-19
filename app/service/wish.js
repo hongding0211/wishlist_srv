@@ -72,7 +72,53 @@ class WishService extends Service {
   }
 
   async myClaims() {
-    // TODO
+    const { _id } = this.ctx.token
+
+    const userId = new this.app.mongoose.Types.ObjectId(_id)
+
+    const { page, size } = this.ctx.pagination
+
+    this.ctx.pagination.total = await this.ctx.model.Wish.find({
+      claimed_by: userId,
+    }).countDocuments({})
+
+    const r = this.ctx.model.Wish.aggregate([
+      {
+        $match: { claimed_by: userId },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          as: 'userArr',
+          localField: 'creator',
+          foreignField: '_id',
+        },
+      },
+      {
+        $unwind: {
+          path: '$userArr',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          wishId: '$_id',
+          createdAt: '$created_at',
+          modifiedAt: '$modified_at',
+          meta: 1,
+          creator: {
+            uuid: '$userArr.uuid',
+            name: '$userArr.name',
+            avatar: '$userArr.avatar',
+          },
+        },
+      },
+    ])
+      .sort({ modifiedAt: -1 })
+      .skip((page - 1) * size)
+      .limit(size)
+    console.log(await r)
+    return r
   }
 
   async claim(wishId) {
@@ -82,11 +128,19 @@ class WishService extends Service {
       _id: wishId,
     })
 
-    if (f.length > 0 && f[0].claimed_by) {
-      throw new Error('Wish has been claimed by this user.')
+    if (f.length < 1) {
+      throw new Error('Invalid wish id.')
     }
 
-    // TODO 自己也不能认领自己的，要做限制
+    if (f[0].claimed_by) {
+      throw new Error('Wish has been claimed.')
+    }
+
+    // 左边是 Object 右边是 string
+    // 左边是 bson type 的对象，原型上有 toString() 方法
+    if (f[0].creator.toString() === userId) {
+      throw new Error('You cannot claim a wish from your own.')
+    }
 
     return this.ctx.model.Wish.updateOne(
       {
@@ -119,6 +173,7 @@ class WishService extends Service {
   }
 
   async wishesOf(uuid) {
+    const { _id } = this.ctx.token
     const { page, size } = this.ctx.pagination
 
     const f = await this.ctx.model.User.find({
@@ -129,9 +184,9 @@ class WishService extends Service {
       throw new Error('Invalid uuid.')
     }
 
-    // if (f[0].uuid === uuid) {
-    //   throw new Error('Are you trying to hack something here?')
-    // }
+    if (f[0]._id.toString() === _id) {
+      throw new Error('Are you trying to hack something here?')
+    }
 
     const userId = f[0]._id
 
@@ -141,16 +196,40 @@ class WishService extends Service {
 
     this.ctx.pagination.total = await c1.countDocuments({})
 
-    // TODO 要做一个 look 聚合下用户数据
-    return this.ctx.model.Wish.find(
+    return this.ctx.model.Wish.aggregate([
       {
-        creator: userId,
+        $match: { creator: userId },
       },
       {
-        creator: 0,
-      }
-    )
-      .sort({ modified_at: -1 })
+        $lookup: {
+          from: 'users',
+          as: 'userArr',
+          localField: 'claimed_by',
+          foreignField: '_id',
+        },
+      },
+      {
+        $unwind: {
+          path: '$userArr',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          wishId: '$_id',
+          createdAt: '$created_at',
+          modifiedAt: '$modified_at',
+          meta: 1,
+          claimedBy: {
+            uuid: '$userArr.uuid',
+            name: '$userArr.name',
+            avatar: '$userArr.avatar',
+          },
+        },
+      },
+    ])
+      .sort({ modifiedAt: -1 })
       .skip((page - 1) * size)
       .limit(size)
   }
