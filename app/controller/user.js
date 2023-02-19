@@ -15,7 +15,7 @@ class UserController extends BaseController {
     const { type, ticket } = this.ctx.query
 
     try {
-      let tokenData, userData, uuid
+      let tokenData, userData, uuid, _id
 
       switch (type) {
         case 'sso':
@@ -27,7 +27,6 @@ class UserController extends BaseController {
           break
       }
 
-      // TODO 读库查看是否有记录，没有记录往库里写一下
       const { uid, authToken } = tokenData
 
       const found = await this.ctx.service.user.findBySourceUid(uid)
@@ -53,13 +52,14 @@ class UserController extends BaseController {
             break
         }
 
-        await this.ctx.service.user.add(userData)
+        const insert = await this.ctx.service.user.add(userData)
+        _id = insert[0]._id
       } else {
-        uuid = found[0].uuid
+        _id = found[0]._id
       }
 
       const wrappedToken = wrap({
-        uuid,
+        _id,
       })
 
       this.success({
@@ -71,8 +71,24 @@ class UserController extends BaseController {
   }
 
   async info() {
-    // TODO
-    this.success(this.ctx.token)
+    const found = await this.ctx.service.user.findById(this.ctx.token._id)
+    if (found.length < 1) {
+      this.error('User not exists.')
+    }
+    this.success(found[0])
+  }
+
+  async infos() {
+    this.ctx.validate(
+      {
+        uuids: { type: 'array' },
+      },
+      this.ctx.request.body
+    )
+
+    const { uuids } = this.ctx.request.body
+    const found = await this.ctx.service.user.findByUuids(uuids)
+    this.success(found)
   }
 }
 
