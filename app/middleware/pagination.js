@@ -19,6 +19,8 @@ module.exports = () => {
 
     await next()
 
-    ctx.body.pagination = ctx.pagination
+    if (ctx.body.success) {
+      ctx.body.pagination = ctx.pagination
+    }
   }
 }

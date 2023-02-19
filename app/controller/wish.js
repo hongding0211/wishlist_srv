@@ -49,7 +49,108 @@ class WishController extends BaseController {
 
   async my() {
     const found = await this.ctx.service.wish.my()
-    this.success(found)
+    this.success(
+      found.map((w) => ({
+        wishId: w._id,
+        createdAt: w.created_at,
+        modifiedAt: w.modified_at,
+        meta: w.meta,
+      }))
+    )
+  }
+
+  async myClaimedCount() {
+    this.success(await this.ctx.service.wish.myClaimedCount())
+  }
+
+  async myClaims() {
+    this.success(await this.ctx.service.wish.myClaims())
+  }
+
+  async claim() {
+    this.ctx.validate(
+      {
+        id: { type: 'string' },
+      },
+      this.ctx.request.body
+    )
+
+    const { id } = this.ctx.request.body
+
+    const f = await this.ctx.service.wish.findById(id)
+    if (f.length < 1) {
+      this.error('Invalid wish id.')
+      return
+    }
+
+    try {
+      const r = await this.ctx.service.wish.claim(id)
+
+      if (r.nModified > 0) {
+        this.success({
+          wishId: id,
+        })
+      }
+    } catch (e) {
+      this.error(e.message)
+    }
+  }
+
+  async revertClaim() {
+    this.ctx.validate(
+      {
+        id: { type: 'string' },
+      },
+      this.ctx.request.body
+    )
+
+    const { id } = this.ctx.request.body
+
+    const r = await this.ctx.service.wish.revertClaim(id)
+
+    if (r.nModified > 0) {
+      this.success({
+        revertedClaimId: id,
+      })
+    } else {
+      this.error('Revert failed.')
+    }
+  }
+
+  async wishesOf() {
+    this.ctx.validate(
+      {
+        uuid: { type: 'string' },
+      },
+      this.ctx.query
+    )
+
+    const { uuid } = this.ctx.query
+
+    try {
+      const found = await this.ctx.service.wish.wishesOf(uuid)
+      this.success(
+        found.map((w) => ({
+          ...w,
+          isClaimed: Object.keys(w.claimedBy).length > 0,
+        }))
+      )
+    } catch (e) {
+      this.error(e.message)
+    }
+  }
+
+  async plaza() {
+    this.ctx.validate(
+      {
+        top: { type: 'string', required: false, default: '3' },
+      },
+      this.ctx.query
+    )
+
+    const top = +this.ctx.query.top
+
+    this.success(await this.ctx.service.wish.plaza(top))
   }
 }
 
