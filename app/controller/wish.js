@@ -141,7 +141,16 @@ class WishController extends BaseController {
   }
 
   async plaza() {
-    // TODO
+    this.ctx.validate(
+      {
+        top: { type: 'string', required: false, default: '3' },
+      },
+      this.ctx.query
+    )
+
+    const top = +this.ctx.query.top
+
+    this.success(await this.ctx.service.wish.plaza(top))
   }
 }
 

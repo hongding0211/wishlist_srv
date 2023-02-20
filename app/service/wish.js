@@ -82,7 +82,7 @@ class WishService extends Service {
       claimed_by: userId,
     }).countDocuments({})
 
-    const r = this.ctx.model.Wish.aggregate([
+    return this.ctx.model.Wish.aggregate([
       {
         $match: { claimed_by: userId },
       },
@@ -117,8 +117,6 @@ class WishService extends Service {
       .sort({ modifiedAt: -1 })
       .skip((page - 1) * size)
       .limit(size)
-    console.log(await r)
-    return r
   }
 
   async claim(wishId) {
@@ -234,8 +232,106 @@ class WishService extends Service {
       .limit(size)
   }
 
-  async plaza() {
-    // TODO
+  async plaza(top) {
+    const { _id } = this.ctx.token
+
+    const { page, size } = this.ctx.pagination
+
+    const userId = new this.app.mongoose.Types.ObjectId(_id)
+
+    this.ctx.pagination.total = (
+      await this.ctx.model.Wish.aggregate([
+        {
+          $match: { creator: { $ne: userId } },
+        },
+        {
+          $group: {
+            _id: '$creator',
+          },
+        },
+        {
+          $count: 'total',
+        },
+      ])
+    )[0].total
+
+    return this.ctx.model.Wish.aggregate([
+      {
+        $match: { creator: { $ne: userId } },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'claimed_by',
+          foreignField: '_id',
+          as: 'claimedBy',
+        },
+      },
+      {
+        $unwind: {
+          path: '$claimedBy',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          claimedBy: {
+            _id: 0,
+            source: 0,
+            source_uid: 0,
+            __v: 0,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$creator',
+          top: {
+            $topN: {
+              n: top,
+              sortBy: { modified_at: 1 },
+              output: {
+                wishId: '$_id',
+                createdAt: '$created_at',
+                modifiedAt: '$modified_at',
+                meta: '$meta',
+                claimedAt: '$claimed_at',
+                claimedBy: '$claimedBy',
+              },
+            },
+          },
+          lastModified: {
+            $max: '$modified_at',
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'creator',
+        },
+      },
+      {
+        $unwind: '$creator',
+      },
+      {
+        $project: {
+          _id: 0,
+          lastModified: 1,
+          top: 1,
+          creator: {
+            uuid: 1,
+            name: 1,
+            avatar: 1,
+          },
+        },
+      },
+    ])
+      .sort({ lastModified: -1 })
+      .skip((page - 1) * size)
+      .limit(size)
   }
 }
 
