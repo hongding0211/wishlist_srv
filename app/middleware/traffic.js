@@ -4,7 +4,7 @@ module.exports = (options) => {
   return async function traffic(ctx, next) {
     const { _id } = ctx.token
     if (_id == null) {
-      ctx.throw(401, 'Auth token is required.')
+      ctx.throw(401, 'Invalid token.')
     }
 
     if (!trafficMap.has(_id)) {

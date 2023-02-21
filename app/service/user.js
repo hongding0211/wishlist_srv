@@ -9,12 +9,9 @@ const projection = {
 
 class UserService extends Service {
   findBySourceUid(sourceUid) {
-    return this.ctx.model.User.find(
-      {
-        source_uid: sourceUid,
-      },
-      projection
-    )
+    return this.ctx.model.User.find({
+      source_uid: sourceUid,
+    })
   }
 
   findByUuid(uuid) {
