@@ -40,6 +40,15 @@ module.exports = (appInfo) => {
     },
   }
 
+  const mongoose = {
+    client: {
+      url: 'mongodb://127.0.0.1:27017',
+      options: {
+        dbName: 'wishlist',
+      },
+    },
+  }
+
   /** **********************
    ***** Middleware *******
    ************************/
@@ -56,6 +65,7 @@ module.exports = (appInfo) => {
   return {
     ...config,
     ...userConfig,
+    mongoose,
     sso,
     loginType,
   }
