@@ -29,7 +29,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --title=egg-server-wishlist_srv",
+    "start": "egg-scripts start --title=egg-server-wishlist_srv",
     "stop": "egg-scripts stop --title=egg-server-wishlist_srv",
     "dev": "egg-bin dev",
     "debug": "egg-bin debug",
