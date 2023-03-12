@@ -16,7 +16,7 @@ module.exports = (appInfo) => {
   config.keys = appInfo.name + '_1676389048099_6333'
 
   // add your middleware config here
-  config.middleware = ['auth', 'traffic']
+  config.middleware = []
 
   // add your user config here
   const userConfig = {
@@ -49,17 +49,15 @@ module.exports = (appInfo) => {
     },
   }
 
-  /** **********************
-   ***** Middleware *******
-   ************************/
-  config.auth = {
+  const token = {
     ignore: '/user/login',
+    tokenKey: 'tokenKey',
   }
 
-  config.traffic = {
+  const traffic = {
+    ignore: '/user/login',
     windowSize: 60 * 1000,
     maxRequest: 100,
-    ignore: '/user/login',
   }
 
   return {
@@ -68,5 +66,7 @@ module.exports = (appInfo) => {
     mongoose,
     sso,
     loginType,
+    token,
+    traffic,
   }
 }
