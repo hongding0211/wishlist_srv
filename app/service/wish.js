@@ -239,21 +239,22 @@ class WishService extends Service {
 
     const userId = new this.app.mongoose.Types.ObjectId(_id)
 
-    this.ctx.pagination.total = (
-      await this.ctx.model.Wish.aggregate([
-        {
-          $match: { creator: { $ne: userId } },
-        },
-        {
-          $group: {
-            _id: '$creator',
+    this.ctx.pagination.total =
+      (
+        await this.ctx.model.Wish.aggregate([
+          {
+            $match: { creator: { $ne: userId } },
           },
-        },
-        {
-          $count: 'total',
-        },
-      ])
-    )[0].total
+          {
+            $group: {
+              _id: '$creator',
+            },
+          },
+          {
+            $count: 'total',
+          },
+        ])
+      )[0]?.total || 0
 
     return this.ctx.model.Wish.aggregate([
       {
